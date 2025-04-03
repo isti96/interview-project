@@ -1,0 +1,21 @@
+# Ignore Visual Studio temporary files, build results, and user-specific files
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.vcxproj.user
+*.csproj.user
+*.dbmdl
+*.jfm
+
+# Ignore build artifacts
+*.exe
+*.dll
+*.pdb
+*.appx
+*.appxbundle
+*.msi
+*.nupkg
+*.snupkg
+TestResults/
