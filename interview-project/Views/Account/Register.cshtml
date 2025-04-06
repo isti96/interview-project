@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+@model LoginViewModel
+
+<h2>Register</h2>
+
+<form asp-controller="Account" asp-action="Register" method="post">
+    <div>
+        <label asp-for="UserName">Username</label>
+        <input type="text" name="username" required />
+    </div>
+    <div>
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password" name="password" required />
+    </div>
+    <button type="submit">Register</button>
+</form>

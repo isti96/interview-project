@@ -1,0 +1,57 @@
+﻿@using interview_project.Database.Entities;
+
+@model Company
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Company details</h5>
+            </div>
+            <div class="modal-body">
+                <form asp-action="Update" asp-controller="Home" asp-route-id="@Model.Id" method="post">
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" asp-for="Name" value="@Model.Name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Stock ticker</label>
+                        <input type="text" class="form-control" asp-for="StockTicker" value="@Model.StockTicker" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Exchange</label>
+                        <input type="text" class="form-control" asp-for="Exchange" required value="@Model.Exchange">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ISIN</label>
+                        <input type="text" class="form-control" asp-for="ISIN" value="@Model.ISIN" required>
+                        @Html.ValidationMessageFor(m => m.ISIN, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Website URL</label>
+                        <input type="text" class="form-control" asp-for="WebsiteURL" value="@Model.WebsiteURL">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Company</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

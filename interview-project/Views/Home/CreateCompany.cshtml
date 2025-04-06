@@ -1,0 +1,62 @@
+﻿@using interview_project.Database.Entities;
+@model CompanyModel
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<!DOCTYPE html>
+<html lang="en">
+<body>
+
+
+    <h2>Create a New Company</h2>
+
+    <form asp-action="Create" asp-controller="Home" method="post">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" asp-for="Name" required>
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Stock ticker</label>
+            <input type="text" class="form-control" asp-for="StockTicker" required>
+            <span asp-validation-for="StockTicker" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Exchange</label>
+            <input type="text" class="form-control" asp-for="Exchange" required>
+            <span asp-validation-for="Exchange" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">ISIN</label>
+            <input type="text" class="form-control" asp-for="ISIN" required>
+            <span asp-validation-for="ISIN" class="text-danger"></span>
+            @Html.ValidationMessageFor(m => m.ISIN, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Website URL</label>
+            <input type="text" class="form-control" asp-for="WebsiteURL">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Company</button>
+    </form>
+</body>
+
+
+</html>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

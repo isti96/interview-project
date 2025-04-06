@@ -1,8 +1,74 @@
-﻿@{
+﻿@using interview_project.Database.Entities;
+
+@{
     ViewData["Title"] = "Home Page";
+    var currentIsin = ViewData["Isin"] as string;
+    var currentId = ViewData["companyId"] as string;
+
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
+@model List<Company>
+
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="site.css">
+</head>
+<body>
+
+    <div class="text-center">
+        <h1 class="display-4">Welcome home my friend</h1>
+        <button onclick="createCompany()">Add company</button>
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit">Logout</button>
+        </form>
+        <form method="get" action="@Url.Action("Index")">
+            <input type="text" id="isin" name="isin" placeholder="Search by ISIN number" value="@currentIsin" />
+            <input type="text" id="companyId" name="companyId" placeholder="Search by company Id" value="@currentId" />
+            <button type="submit">Filter</button>
+        </form>
+
+        @if (Model != null && Model.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Exchange</th>
+                        <th>Ticker</th>
+                        <th>ISIN</th>
+                        <th>Website</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var company in Model)
+                    {
+                        <tr>
+                            <td>@company.Id</td>
+                            <td><a asp-controller="Home" asp-action="Details" asp-route-id="@company.Id">@company.Name</a></td>
+                            <td>@company.Exchange</td>
+                            <td>@company.StockTicker</td>
+                            <td>@company.ISIN</td>
+                            <td><a href="@company.WebsiteURL">@company.WebsiteURL</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div>
+                <span>No companies available to display.</span>
+            </div>
+        }
+
+    </div>
+    <script>
+        function createCompany() {
+            window.location.href = 'Home/CreateCompany';
+        }
+    </script>
+
+</body>
+</html>
