@@ -29,13 +29,19 @@ namespace interview_project.Controllers
                 return Unauthorized("Invalid credentials");
             }
 
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.UserName) };
+            var claims = new List<Claim> { new(ClaimTypes.Name, user.UserName) };
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
         }
 
         [HttpPost]
@@ -45,11 +51,7 @@ namespace interview_project.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        public IActionResult Login()
-        {
-            return View();
-        }
-
+        [HttpPost]
         public async Task<IActionResult> Register(string username, string password)
         {
             var existingUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.UserName == username);

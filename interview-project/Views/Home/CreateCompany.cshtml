@@ -1,10 +1,10 @@
 ﻿@using interview_project.Database.Entities;
 @model CompanyModel
 
-@if (TempData["ErrorMessage"] != null)
+@if (ViewData["ErrorMessage"] != null)
 {
     <div class="alert alert-danger">
-        @TempData["ErrorMessage"]
+        @ViewData["ErrorMessage"]
     </div>
 }
 

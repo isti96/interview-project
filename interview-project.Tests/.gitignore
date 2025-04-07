@@ -1,0 +1,34 @@
+# Build results
+bin/
+obj/
+
+# Rider project files
+.idea/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# ASP.NET stuff
+project.lock.json
+project.fragment.lock.json
+
+# VS Code files
+.vscode/
+
+# NuGet packages
+*.nupkg
+packages/
+*.snupkg
+
+# Logs
+*.log
+
+# User-specific files
+*.userprefs
+
+# Others
+*.db
+*.sqlite
+*.mdb

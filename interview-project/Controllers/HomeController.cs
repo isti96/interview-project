@@ -2,6 +2,7 @@ using AutoMapper;
 using interview_project.Database;
 using interview_project.Database.Entities;
 using interview_project.Models;
+using interview_project.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,87 +12,84 @@ namespace interview_project.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly AppDbContext _db;
         private readonly IMapper _mapper;
+        private readonly ICompanyService _companyService;
 
-        public HomeController(AppDbContext appDbContext, IMapper mapper)
+        public HomeController(AppDbContext db, IMapper mapper, ICompanyService companyService)
         {
-            _appDbContext = appDbContext;
+            _db = db;
             _mapper = mapper;
+            _companyService = companyService;
         }
 
-        public async Task<IActionResult> Index(string isin, string companyId, CancellationToken cancellationToken)
+        [HttpGet]
+        public async Task<IActionResult> Index(string? isin, string? companyId, CancellationToken cancellationToken)
         {
-            IQueryable<Company> companiesQuery = _appDbContext.Companies.AsQueryable();
-
-            if (!string.IsNullOrEmpty(isin))
-            {
-                companiesQuery = companiesQuery.Where(p => p.ISIN.Contains(isin) || p.ISIN == isin);
-            }
-
-            if (!string.IsNullOrEmpty(companyId))
-            {
-                companiesQuery = companiesQuery.Where(p => p.Id.ToString() == companyId);
-            }
-
             ViewData["Isin"] = isin;
             ViewData["companyId"] = companyId;
 
-            List<Company> companies = await companiesQuery.ToListAsync(cancellationToken);
+            List<Company> companies = await _companyService.GetAllCompanies(isin, companyId, cancellationToken);
 
             return View(companies);
-        }
-
-        public async Task<Company> GetCompanyById(int id, CancellationToken cancellationToken)
-        {
-            Company? company = await _appDbContext.Companies.FindAsync(id, cancellationToken);
-            return company;
-        }
-
-        public async Task<Company> GetCompanyByISIN(string isin, CancellationToken cancellationToken)
-        {
-            Company? company = await _appDbContext.Companies.SingleOrDefaultAsync(c => c.ISIN == isin, cancellationToken);
-            return company;
         }
 
         [HttpGet("Home/Details/{id}")]
         public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
         {
-            var company = await GetCompanyById(id, cancellationToken);
-            if (company == null) return NotFound();
-            return View(company);
+            var company = await _companyService.GetCompanyById(id, cancellationToken);
+            return company is null ? NotFound() : View(company);
         }
 
         [HttpPost("Home/Details/{id}")]
-        public async Task<IActionResult> Update(CompanyModel company, int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(CompanyModel model, int id, CancellationToken cancellationToken)
         {
-            var companyEntity = await GetCompanyById(id, cancellationToken);
+            var companyEntity = await _companyService.GetCompanyById(id, cancellationToken);
 
-            if (companyEntity.ISIN != company.ISIN && await DoesIsinNumberExist(company.ISIN, cancellationToken))
+            if (companyEntity is null)
             {
-                TempData["ErrorMessage"] = "A company already exists with this ISIN number!";
-                return RedirectToAction("Details", "Home", new { id });
+                return NotFound();
             }
 
+            if (!IsValidIsin(model.ISIN))
+            {
+                ViewData["ErrorMessage"] = "ISIN must start with two letters.";
+                return View("Details", companyEntity);
+            }
 
-            _mapper.Map(company, companyEntity);
-            await _appDbContext.SaveChangesAsync(cancellationToken);
+            if (companyEntity.ISIN != model.ISIN && await DoesIsinNumberExist(model.ISIN, cancellationToken))
+            {
+                ViewData["ErrorMessage"] = "A company already exists with this ISIN number!";
+                return View("Details", companyEntity);
+            }
+
+            _mapper.Map(model, companyEntity);
+            await _db.SaveChangesAsync(cancellationToken);
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Create(CompanyModel company, CancellationToken cancellationToken)
+        [HttpPost]
+        public async Task<IActionResult> Create(CompanyModel model, CancellationToken cancellationToken)
         {
-            if (await DoesIsinNumberExist(company.ISIN, cancellationToken))
+            if (!IsValidIsin(model.ISIN))
             {
-                TempData["ErrorMessage"] = "A company already exists with this ISIN number!";
-                return RedirectToAction("CreateCompany");
+                ViewData["ErrorMessage"] = "ISIN must start with two letters.";
+                return View("CreateCompany", model);
             }
 
-            await _appDbContext.Companies.AddAsync(_mapper.Map<Company>(company), cancellationToken);
-            await _appDbContext.SaveChangesAsync(cancellationToken);
+            if (await DoesIsinNumberExist(model.ISIN, cancellationToken))
+            {
+                ViewData["ErrorMessage"] = "A company already exists with this ISIN number!";
+                return View("CreateCompany", model);
+            }
+
+            var entity = _mapper.Map<Company>(model);
+            await _db.Companies.AddAsync(entity, cancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
         public IActionResult CreateCompany()
         {
             return View();
@@ -99,7 +97,12 @@ namespace interview_project.Controllers
 
         public async Task<bool> DoesIsinNumberExist(string isinNumber, CancellationToken cancellationToken)
         {
-            return await _appDbContext.Companies.AnyAsync(c => c.ISIN == isinNumber, cancellationToken);
+            return await _db.Companies.AnyAsync(c => c.ISIN == isinNumber, cancellationToken);
+        }
+
+        public static bool IsValidIsin(string isin)
+        {
+            return char.IsLetter(isin[0]) && char.IsLetter(isin[1]);
         }
     }
 }
