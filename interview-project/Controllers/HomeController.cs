@@ -23,7 +23,6 @@ namespace interview_project.Controllers
             _companyService = companyService;
         }
 
-        [HttpGet]
         public async Task<IActionResult> Index(string? isin, string? companyId, CancellationToken cancellationToken)
         {
             ViewData["Isin"] = isin;
@@ -34,14 +33,12 @@ namespace interview_project.Controllers
             return View(companies);
         }
 
-        [HttpGet("Home/Details/{id}")]
         public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
         {
             var company = await _companyService.GetCompanyById(id, cancellationToken);
             return company is null ? NotFound() : View(company);
         }
 
-        [HttpPost("Home/Details/{id}")]
         public async Task<IActionResult> Update(CompanyModel model, int id, CancellationToken cancellationToken)
         {
             var companyEntity = await _companyService.GetCompanyById(id, cancellationToken);

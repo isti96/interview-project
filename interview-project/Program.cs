@@ -49,22 +49,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapControllerRoute(
-    name: "details",
-    pattern: "{controller=Home}/{action=Details}/{id}");
-
-app.MapControllerRoute(
-    name: "create",
-    pattern: "{controller=Home}/{action=Create}");
-
-app.MapControllerRoute(
-    name: "update",
-    pattern: "{controller=Home}/{action=Update}");
-
-app.MapControllerRoute(
-    name: "login",
-    pattern: "{controller=Account}/{action=Login}");
 
 app.Run();
