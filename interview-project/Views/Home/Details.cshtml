@@ -41,7 +41,7 @@
                     <div class="mb-3">
                         <label class="form-label">ISIN</label>
                         <input type="text" class="form-control" asp-for="ISIN" value="@Model.ISIN" required>
-                        @Html.ValidationMessageFor(m => m.ISIN, "", new { @class = "text-danger" })
+                        <span asp-validation-for="ISIN" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
