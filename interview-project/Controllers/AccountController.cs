@@ -1,5 +1,6 @@
 ﻿using interview_project.Database;
 using interview_project.Database.Entities;
+using interview_project.Models;
 using interview_project.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -12,21 +13,34 @@ namespace interview_project.Controllers
     public class AccountController : Controller
     {
         private readonly AppDbContext _db;
-        private readonly PasswordService _passwordService;
+        private readonly IPasswordService _passwordService;
 
-        public AccountController(AppDbContext context, PasswordService passwordService)
+        public AccountController(AppDbContext context, IPasswordService passwordService)
         {
             _db = context;
             _passwordService = passwordService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Login(string username, string password, CancellationToken cancellationToken)
+        [HttpGet]
+        public IActionResult Login()
         {
-            var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
-            if (user == null || !_passwordService.VerifyPassword(user.PasswordHash, password, user))
+            return View(new LoginViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
             {
-                return Unauthorized("Invalid credentials");
+                return View(model);
+            }
+
+            var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.UserName == model.Username, cancellationToken);
+            if (user == null || !_passwordService.VerifyPassword(user, user.PasswordHash, model.Password))
+            {
+                ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                return View(model);
             }
 
             var claims = new List<Claim> { new(ClaimTypes.Name, user.UserName) };
@@ -39,42 +53,45 @@ namespace interview_project.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Register()
         {
-            return View();
-        }
-
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login", "Account");
+            return View(new RegisterViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string username, string password)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
         {
-            var existingUser = await _db.AppUsers.FirstOrDefaultAsync(u => u.UserName == username);
-            if (existingUser != null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Username already exists");
+                return View(model);
+            }
+
+            var existingUser = await _db.AppUsers.AnyAsync(u => u.UserName == model.Username, cancellationToken);
+            if (existingUser)
+            {
+                ModelState.AddModelError("Username", "This username is already taken.");
+                return View(model);
             }
 
             var user = new AppUser
             {
-                UserName = username,
-                PasswordHash = _passwordService.HashPassword(password, new AppUser())
+                UserName = model.Username,
+                PasswordHash = _passwordService.HashPassword(new AppUser(), model.Password)
             };
 
             _db.AppUsers.Add(user);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
             return RedirectToAction("Login");
         }
 
-        [HttpGet]
-        public IActionResult Register()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
-            return View();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
         }
     }
 }

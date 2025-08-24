@@ -3,18 +3,30 @@ using Microsoft.AspNetCore.Identity;
 
 namespace interview_project.Services
 {
-    public class PasswordService
+    public interface IPasswordService
     {
-        private readonly PasswordHasher<AppUser> _hasher = new();
+        string HashPassword(AppUser user, string password);
 
-        public string HashPassword(string password, AppUser user)
+        bool VerifyPassword(AppUser user, string hashedPassword, string inputPassword);
+    }
+
+    public class PasswordService : IPasswordService
+    {
+        private readonly IPasswordHasher<AppUser> _passwordHasher;
+
+        public PasswordService(IPasswordHasher<AppUser> passwordHasher)
         {
-            return _hasher.HashPassword(user, password);
+            _passwordHasher = passwordHasher;
         }
 
-        public bool VerifyPassword(string hashedPassword, string inputPassword, AppUser user)
+        public string HashPassword(AppUser user, string password)
         {
-            var result = _hasher.VerifyHashedPassword(user, hashedPassword, inputPassword);
+            return _passwordHasher.HashPassword(user, password);
+        }
+
+        public bool VerifyPassword(AppUser user, string hashedPassword, string inputPassword)
+        {
+            var result = _passwordHasher.VerifyHashedPassword(user, hashedPassword, inputPassword);
             return result == PasswordVerificationResult.Success;
         }
     }

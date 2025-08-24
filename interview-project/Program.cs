@@ -1,7 +1,9 @@
 using interview_project.Database;
+using interview_project.Database.Entities;
 using interview_project.Models;
 using interview_project.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                    options.SlidingExpiration = true;
                });
 
-builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 
 var app = builder.Build();
@@ -50,6 +53,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 
 app.Run();
