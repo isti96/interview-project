@@ -10,11 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_deploy:
+  build:
     runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
-      id-token: write #This is required for requesting the JWT
 
     steps:
       - uses: actions/checkout@v4
@@ -24,15 +23,37 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      - name: build and publish
-        run: dotnet publish interview-project/interview-project.csproj -c Release -o ./publish
-        
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A0EBEB289D504878920E955205C07FBE }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CAE15E0614ED410C99BD846640F040D8 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1B5147632EFD47C899C3E98A2A451950 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E21C39D4F0FC4DCEB6EC44359648434F }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_529B6173F96B4318AB37A21D7D391868 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0304E12CB8294787BFFCF86917DD8E22 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -40,5 +61,5 @@ jobs:
         with:
           app-name: 'Companies'
           slot-name: 'Production'
-          package: ./publish
+          package: .
           
