@@ -17,7 +17,7 @@ namespace interview_project.Tests
             });
             var mapper = mapperConfig.CreateMapper();
 
-            var companyService = new CompanyService(context);
+            var companyService = new CompanyService(context, mapper);
 
             var controller = new HomeController(context, mapper, companyService);
 
