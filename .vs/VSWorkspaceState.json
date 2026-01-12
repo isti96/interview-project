@@ -1,7 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\.github",
+    "\\.github\\workflows",
+    "\\interview-project"
   ],
-  "SelectedNode": "\\interview-project.sln",
+  "SelectedNode": "\\interview-project\\Program.cs",
   "PreviewInSolutionExplorer": false
 }
